@@ -19,6 +19,11 @@ public class CurriculoService {
         return curriculoRepository.findAll();
     }
 
+    public Curriculo getById(Long id) {
+        return curriculoRepository.findById(id)
+                         .orElseThrow(() -> new RuntimeException("Currículo não encontrado com ID: " + id));
+    }
+
     public Curriculo saveCurriculo(Curriculo curriculo) {
         return curriculoRepository.save(curriculo);
     }

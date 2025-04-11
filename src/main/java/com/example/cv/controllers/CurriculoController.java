@@ -20,6 +20,10 @@ public class CurriculoController {
     public List<Curriculo> getAllCurriculos() {
         return curriculoService.getAllCurriculos();
     }
+    @GetMapping("/getcv/{id}")
+    public Curriculo getById(@PathVariable Long id) {
+        return curriculoService.getById(id);
+    }
 
 
     @PostMapping("/postcv")
