@@ -27,16 +27,12 @@
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 5px;
-            display: none; /* Esconde a div inicialmente */
+            display: none;
             margin-top: 20px;
         }
 
-        .curriculo-item:hover {
-            background-color: lightgray;
-        }
-
         .novocurriculo {
-            display: none; /* Inicialmente escondido */
+            display: none;
             margin-top: 20px;
             padding: 20px;
             border: 1px solid #ccc;
@@ -65,6 +61,19 @@
             background-color: #45a049;
         }
 
+        #excluirBtn {
+            margin-top: 20px;
+            background-color: red;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #excluirBtn:hover {
+            background-color: darkred;
+        }
     </style>
 </head>
 <body>
@@ -72,10 +81,8 @@
         <h1>Página de Currículos</h1>
     </header>
 
-    <!-- Botão para exibir o formulário de adicionar currículo -->
     <button id="adicionarCurriculoBtn">Adicionar Currículo</button>
 
-    <!-- Formulário de novo currículo -->
     <div class="novocurriculo">
         <h2>Cadastrar Novo Currículo</h2>
         <form id="formNovoCurriculo">
@@ -83,10 +90,10 @@
             <input type="text" id="phone" placeholder="Telefone" required>
             <input type="text" id="loc" placeholder="Localização" required>
             <input type="email" id="email" placeholder="Email" required>
-            
+
             <h3>Formações</h3>
             <textarea id="formacoes" placeholder="Formações (separadas por vírgulas)" required></textarea>
-            
+
             <h3>Objetivos</h3>
             <textarea id="objetivos" placeholder="Objetivos (separados por vírgulas)" required></textarea>
 
@@ -103,44 +110,48 @@
         </form>
     </div>
 
-    <!-- Lista de currículos -->
     <div class="itens">
-        <!-- Os itens serão adicionados dinamicamente aqui -->
+        <!-- Itens adicionados dinamicamente -->
     </div>
 
-    <!-- Área para exibir as informações do currículo selecionado -->
     <div class="exibirConteudo">
         <h2>Detalhes do Currículo</h2>
         <p><strong>Nome:</strong> <span id="nameDisplay"></span></p>
         <p><strong>Telefone:</strong> <span id="phoneDisplay"></span></p>
         <p><strong>Localização:</strong> <span id="locDisplay"></span></p>
         <p><strong>Email:</strong> <span id="emailDisplay"></span></p>
+
         <h3>Formações</h3>
         <ul id="formacoesDisplay"></ul>
+
         <h3>Objetivos</h3>
         <ul id="objetivosDisplay"></ul>
+
         <h3>Competências</h3>
         <ul id="competenciasDisplay"></ul>
+
         <h3>Linguagens</h3>
         <ul id="linguagensDisplay"></ul>
+
         <h3>Projetos</h3>
         <ul id="projetosDisplay"></ul>
+
+        <button id="excluirBtn">Excluir Currículo</button>
     </div>
 
     <script>
-        // Função para carregar todos os currículos
         function getAllCurriculos() {
             fetch('/cv/getallcv')
                 .then(response => response.json())
                 .then(data => {
                     const itensDiv = document.querySelector('.itens');
-                    itensDiv.innerHTML = ''; // Limpa os itens existentes
+                    itensDiv.innerHTML = '';
                     data.forEach(curriculo => {
                         const div = document.createElement('div');
                         div.classList.add('curriculo-item');
-                        div.textContent = curriculo.name; // Mostra o nome do currículo
-                        div.onclick = function() {
-                            getCurriculoById(curriculo.id); // Chama o método para exibir o currículo detalhado
+                        div.textContent = curriculo.name;
+                        div.onclick = function () {
+                            getCurriculoById(curriculo.id);
                         };
                         itensDiv.appendChild(div);
                     });
@@ -150,37 +161,57 @@
                 });
         }
 
-        // Função para carregar um currículo específico pelo ID
         function getCurriculoById(id) {
             fetch(`/cv/getcv/${id}`)
                 .then(response => response.json())
                 .then(curriculo => {
                     const exibirConteudoDiv = document.querySelector('.exibirConteudo');
-                    exibirConteudoDiv.style.display = 'block'; // Mostra a div de exibição
+                    exibirConteudoDiv.style.display = 'block';
 
-                    // Preenche as informações na div
                     document.getElementById('nameDisplay').textContent = curriculo.name;
                     document.getElementById('phoneDisplay').textContent = curriculo.phone;
                     document.getElementById('locDisplay').textContent = curriculo.loc;
                     document.getElementById('emailDisplay').textContent = curriculo.email;
 
-                    // Preenche as listas de formações, objetivos, competências, linguagens e projetos
                     document.getElementById('formacoesDisplay').innerHTML = curriculo.formacoes.map(item => `<li>${item}</li>`).join('');
                     document.getElementById('objetivosDisplay').innerHTML = curriculo.objetivos.map(item => `<li>${item}</li>`).join('');
                     document.getElementById('competenciasDisplay').innerHTML = curriculo.competencias.map(item => `<li>${item}</li>`).join('');
                     document.getElementById('linguagensDisplay').innerHTML = curriculo.linguagens.map(item => `<li>${item}</li>`).join('');
                     document.getElementById('projetosDisplay').innerHTML = curriculo.projetos.map(item => `<li>${item}</li>`).join('');
+
+                    // Ativa botão de excluir
+                    document.getElementById('excluirBtn').onclick = function () {
+                        deletarCurriculo(id);
+                    };
                 })
                 .catch(error => {
                     console.error('Erro ao carregar o currículo:', error);
                 });
         }
 
-        // Função para enviar um novo currículo
+        function deletarCurriculo(id) {
+            if (confirm('Tem certeza que deseja excluir este currículo?')) {
+                fetch(`/cv/delcv/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Currículo excluído com sucesso!');
+                        document.querySelector('.exibirConteudo').style.display = 'none';
+                        getAllCurriculos();
+                    } else {
+                        alert('Erro ao excluir currículo.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao excluir currículo:', error);
+                });
+            }
+        }
+
         function enviarNovoCurriculo(event) {
             event.preventDefault();
 
-            // Coleta os dados do formulário
             const novoCurriculo = {
                 name: document.getElementById('name').value,
                 phone: document.getElementById('phone').value,
@@ -193,7 +224,6 @@
                 projetos: document.getElementById('projetos').value.split(',')
             };
 
-            // Envia a requisição POST para adicionar o currículo
             fetch('/cv/postcv', {
                 method: 'POST',
                 headers: {
@@ -204,8 +234,8 @@
             .then(response => response.json())
             .then(() => {
                 alert('Currículo adicionado com sucesso!');
-                document.querySelector('.novocurriculo').style.display = 'none'; // Esconde o formulário
-                getAllCurriculos(); // Atualiza a lista de currículos
+                document.querySelector('.novocurriculo').style.display = 'none';
+                getAllCurriculos();
             })
             .catch(error => {
                 console.error('Erro ao adicionar currículo:', error);
@@ -213,16 +243,13 @@
             });
         }
 
-        // Função para exibir o formulário de novo currículo
-        document.getElementById('adicionarCurriculoBtn').onclick = function() {
-            document.querySelector('.novocurriculo').style.display = 'block'; // Exibe o formulário
+        document.getElementById('adicionarCurriculoBtn').onclick = function () {
+            document.querySelector('.novocurriculo').style.display = 'block';
         };
 
-        // Configura o evento de envio do formulário
         document.getElementById('formNovoCurriculo').addEventListener('submit', enviarNovoCurriculo);
 
-        // Carrega os currículos ao carregar a página
-        window.onload = function() {
+        window.onload = function () {
             getAllCurriculos();
         };
     </script>
